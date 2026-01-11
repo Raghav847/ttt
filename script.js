@@ -170,4 +170,70 @@ const DisplayController = (() => {
             }
     });
     };
-})
+
+    const updateGameInfo = () => {
+        if (!GameController.isGameStarted()) {
+            gameInfo.textContent = "Click Start to begin!";
+            return;
+        }
+        if (GameController.getGameOver()) {
+            const winner = GameController.getWinner();
+            if (winner) {
+                gameInfo.textContent = `${winner.name} wins!`;
+                winnerMessage.textContent = `🎉 ${winner.name} (${winner.marker}) is the winner!`;
+                winnerMessage.classList.remove('tie-message');
+            } else if (GameController.checkTie()) {
+                gameInfo.textContent = "It's a tie!";
+                winnerMessage.textContent = "😐 It's a tie! Good game!";
+                winnerMessage.classList.add('tie-message');
+            }
+            winnerMessage.classList.add('show');
+        } else {
+            const currentPlayer = GameController.getCurrentPlayer();
+            gameInfo.textContent = `${currentPlayer.name}'s turn (${currentPlayer.marker})`;
+            winnerMessage.classList.remove('show');
+        }
+ };
+
+    const handleCellClick = (e) => {
+        const index = e.target.dataset.index;
+        const played = GameController.playRound(index);
+
+        if (played) {
+            renderBoard();
+            updateGameInfo();
+        }
+    };
+     const handleStart = () => {
+                const name1 = player1Input.value.trim();
+                const name2 = player2Input.value.trim();
+                
+                GameController.setPlayerNames(name1, name2);
+                GameController.startGame();
+                
+                startBtn.disabled = true;
+                restartBtn.disabled = false;
+                container.classList.add('game-active');
+                
+                renderBoard();
+                updateGameInfo();
+            };
+            
+            // Handle restart button
+            const handleRestart = () => {
+                GameController.resetGame();
+                renderBoard();
+                updateGameInfo();
+            };
+            
+            // Initialize event listeners
+            const init = () => {
+                createBoard();
+                startBtn.addEventListener('click', handleStart);
+                restartBtn.addEventListener('click', handleRestart);
+            };
+            
+            return { init };
+})();
+
+DisplayController.init();
