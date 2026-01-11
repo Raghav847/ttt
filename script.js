@@ -8,15 +8,11 @@ const GameBoard = (() => {
     const getBoard = () => board;
 
     const setMark = (index, marker) => {
-        if (index < 0 || index > 8) {
-            console.log("invalid position");
-            return false;
-        }
+        if (index < 0 || index > 8) return false;
         if (board[index] === "") {
             board[index] = marker;
             return true;
         }
-        console.log("Position already taken");
         return false;
     };
 
@@ -28,22 +24,11 @@ const GameBoard = (() => {
         return board.every(cell => cell !== "");
     };
 
-    const displayBoard = () => {
-        console.log("\n");
-        console.log(` ${board[0] || 0} | ${board[1] || 1} | ${board[2] || 2} `);
-        console.log("-----------");
-        console.log(` ${board[3] || 3} | ${board[4] || 4} | ${board[5] || 5} `);
-        console.log("-----------");
-        console.log(` ${board[6] || 6} | ${board[7] || 7} | ${board[8] || 8} `);
-        console.log("\n");
-    };
-
     return {
         getBoard,
         setMark,
         resetBoard,
-        isFull,
-        displayBoard
+        isFull
     };
 })();
 
@@ -53,6 +38,7 @@ const GameController = (() => {
     let currentPlayer = playerOne;
     let gameOver = false;
     let winner = null;
+    let gameStarted = false;
 
     const winningCombinations = [
         [0, 1, 2], // Top row
@@ -94,35 +80,33 @@ const GameController = (() => {
 
     const getWinner = () => winner;
 
+    const isGameStarted = () => gameStarted;
+
     const playRound = (index) => {
-        if (gameOver) {
-            console.log("Game over! reset to play");
-            return;
-        }
+        if (gameOver || !gameStarted) return false; 
 
         const markPlaced = GameBoard.setMark(index, currentPlayer.marker);
 
-        if (!markPlaced) {
-            return;
-        }
-
-        GameBoard.displayBoard();
+        if (!markPlaced) return false;
 
         const winningMarker = checkWinner();
         if (winningMarker) {
             gameOver = true;
             winner = winningMarker === playerOne.marker ? playerOne : playerTwo;
-            console.log(`${winner.name} (${winner.marker}) wins!)`);
-            return;
+            return true;
         }
         if (checkTie()) {
             gameOver = true;
-            console.log("its a tie");
-            return;
+            return true;
         }
 
         switchPlayer();
-        console.log(`${currentPlayer.name}'s turn (${currentPlayer.marker})`);
+        return true;
+    };
+
+    const startGame = () => {
+        gameStarted = true;
+        resetGame();
     };
 
     const resetGame = () => {
@@ -130,47 +114,60 @@ const GameController = (() => {
         currentPlayer = playerOne;
         gameOver = false;
         winner = null;
-        console.log("Game reset! Starting new game...");
-        GameBoard.displayBoard();
-        console.log(`${currentPlayer.name}'s turn (${currentPlayer.marker})`);
     };
 
     const setPlayerNames = (name1, name2) => {
-        playerOne = Player(name1, "X");
-        playerTwo = Player(name2, "O");
+        playerOne = Player(name1 || "Player 1", "X");
+        playerTwo = Player(name2 || "Player 2", "O");
         currentPlayer = playerOne;
-    };
-    
-    // Initialize game
-    const init = () => {
-        console.log("=== TIC-TAC-TOE ===");
-        GameBoard.displayBoard();
-        console.log(`${currentPlayer.name}'s turn (${currentPlayer.marker})`);
     };
     
     return { 
         playRound, 
         getCurrentPlayer, 
-        resetGame, 
+        resetGame,
+        startGame,
         getGameOver,
         getWinner,
         setPlayerNames,
-        init
+        isGameStarted,
+        checkTie
     };
 })();
 
-GameController.init();
+const DisplayController = (() => {
+    const gameboardDiv = document.getElementById("gameboard");
+    const gameInfo = document.getElementById("gameInfo");
+    const startBtn = document.getElementById("startBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const player1Input = document.getElementById("player1");
+    const player2Input = document.getElementById("player2");
+    const winnerMessage = document.getElementById("winnerMessage");
+    const container = document.querySelector(".container");
 
-// ===== INSTRUCTIONS =====
-console.log("\n📖 HOW TO PLAY:");
-console.log("1. Call GameController.playRound(position) where position is 0-8");
-console.log("2. Players alternate automatically");
-console.log("3. Call GameController.resetGame() to start over");
-console.log("4. Call GameController.setPlayerNames('Alice', 'Bob') to set names\n");
+    const createBoard = () => {
+        gameboardDiv.innerHTML = '';
+        for (let i = 0; i < 9; i++) {
+            const cell = document.createElement('button');
+            cell.classList.add('cell');
+            cell.dataset.index = i;
+            cell.addEventListener("click", handleCellClick);
+            gameboardDiv.appendChild(cell);
+        }
+    };
 
-// ===== EXAMPLE GAME =====
-console.log("🎮 Try this example:");
-console.log("GameController.playRound(4); // Center");
-console.log("GameController.playRound(0); // Top-left");
-console.log("GameController.playRound(3); // Middle-left");
-console.log("And so on...\n");
+    const renderBoard = () => {
+        const board = GameBoard.getBoard();
+        const cells = document.querySelectorAll('.cell');
+
+        cells.forEach((cell, index) => {
+            cell.textContent = board[index];
+            cell.classList.remove('x', 'o', 'taken');
+            if (board[index] === 'X') {
+                cell.classList.add('x', 'taken');
+            } else if (board[index] === 'O') {
+                cell.classList.add('o', 'taken');
+            }
+    });
+    };
+})
