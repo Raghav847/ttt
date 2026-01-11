@@ -7,6 +7,31 @@
         <link rel="stylesheet" href="styles.css" />
     </head>
     <body>
+        <div class="container">
+            <h1>Tic-Tac-Toe</h1>
+
+            <div class="player-setup">
+                <div class="player-input">
+                    <label for="player1">Player 1 Name (X):</label>
+                    <input type="text" id="player1" value="Player 1" maxlength="20">
+                </div>
+                <div class="player2">
+                    <label for="player2">Player 2 Name (O):</label>
+                    <input type="text" id="player2" value="Player 2" maxlength="20">
+                </div>
+            </div>
+
+            <div class="winner-message" id="winnerMessage"></div>
+        
+            <div class="game-info" id="gameInfo">Click Start to begin!</div>
+        
+            <div class="gameboard" id="gameboard"></div>
+
+            <div class="controls">
+                <button class="start-btn" id="startBtn">Start Game</button>
+                <button class="restart-btn" id="restartBtn" disabled>Restart Game</button>
+            </div>
+        </div>
         <script src="script.js"></script>
     </body>
 </html>
